@@ -5,8 +5,18 @@ import { laboratoriesApi } from '@/lib/api';
 import { formatDateTime } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import ConfigManager from './ConfigManager';
+import DashboardSelector from './DashboardSelector';
+import { DashboardType } from '@/types/dashboard';
 
-export default function Header() {
+interface HeaderProps {
+  currentDashboard?: DashboardType;
+  onDashboardChange?: (type: DashboardType) => void;
+}
+
+export default function Header({ 
+  currentDashboard = 'test-bench',
+  onDashboardChange 
+}: HeaderProps) {
   const {
     laboratories,
     currentLaboratoryId,
@@ -28,32 +38,38 @@ export default function Header() {
     return () => clearInterval(timer);
   }, []);
 
+  // 根据当前看板决定显示哪些工具
+  const isTestBenchDashboard = currentDashboard === 'test-bench';
+
   return (
     <header className="bg-slate-800 text-white px-4 py-3 flex items-center justify-between shadow-lg">
-      {/* 左侧 - 标题和实验室选择 */}
-      <div className="flex items-center gap-6">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <span className="text-2xl">🏭</span>
-          智能测试台架工厂数字孪生看板
-        </h1>
+      {/* 左侧 - 看板选择器和标题 */}
+      <div className="flex items-center gap-4">
+        {/* 看板选择器 */}
+        <DashboardSelector 
+          currentDashboard={currentDashboard}
+          onDashboardChange={onDashboardChange || (() => {})}
+        />
         
-        {/* 实验室选择 */}
-        <select
-          value={currentLaboratoryId || ''}
-          onChange={(e) => setCurrentLaboratory(e.target.value || null)}
-          className="bg-slate-700 text-white px-3 py-1.5 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">全部实验室</option>
-          {laboratories.map((lab) => (
-            <option key={lab.id} value={lab.id}>
-              {lab.name}
-            </option>
-          ))}
-        </select>
+        {/* 测试台架看板特有 - 实验室选择 */}
+        {isTestBenchDashboard && (
+          <select
+            value={currentLaboratoryId || ''}
+            onChange={(e) => setCurrentLaboratory(e.target.value || null)}
+            className="bg-slate-700 text-white px-3 py-1.5 rounded border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">全部实验室</option>
+            {laboratories.map((lab) => (
+              <option key={lab.id} value={lab.id}>
+                {lab.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       
-      {/* 中间 - 统计摘要 */}
-      {statistics && (
+      {/* 中间 - 统计摘要（测试台架看板特有） */}
+      {isTestBenchDashboard && statistics && (
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-400">在线率:</span>
@@ -86,25 +102,30 @@ export default function Header() {
       
       {/* 右侧 - 工具栏 */}
       <div className="flex items-center gap-3">
-        {/* 网格开关 */}
-        <button
-          onClick={() => setShowGrid(!showGrid)}
-          className={`px-3 py-1.5 rounded text-sm ${
-            showGrid ? 'bg-blue-600' : 'bg-slate-700'
-          }`}
-        >
-          {showGrid ? '📐 隐藏网格' : '📐 显示网格'}
-        </button>
-        
-        {/* 编辑模式开关 */}
-        <button
-          onClick={() => setEditMode(!isEditMode)}
-          className={`px-3 py-1.5 rounded text-sm ${
-            isEditMode ? 'bg-green-600' : 'bg-slate-700'
-          }`}
-        >
-          {isEditMode ? '✏️ 编辑中' : '✏️ 编辑模式'}
-        </button>
+        {/* 测试台架看板特有工具 */}
+        {isTestBenchDashboard && (
+          <>
+            {/* 网格开关 */}
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className={`px-3 py-1.5 rounded text-sm ${
+                showGrid ? 'bg-blue-600' : 'bg-slate-700'
+              }`}
+            >
+              {showGrid ? '📐 隐藏网格' : '📐 显示网格'}
+            </button>
+            
+            {/* 编辑模式开关 */}
+            <button
+              onClick={() => setEditMode(!isEditMode)}
+              className={`px-3 py-1.5 rounded text-sm ${
+                isEditMode ? 'bg-green-600' : 'bg-slate-700'
+              }`}
+            >
+              {isEditMode ? '✏️ 编辑中' : '✏️ 编辑模式'}
+            </button>
+          </>
+        )}
         
         {/* 设置按钮 */}
         <button
