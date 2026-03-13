@@ -1,101 +1,80 @@
 """
 Alarm Model
-Alarm Data Model
+告警数据模型
 """
 
-from sqlalchemy import Column, String, Float, Boolean, DateTime, ForeignKey, Text, Enum as SQLEnum
-from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
-import uuid
-
-from app.core.database import BaseModel
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.sql import func
+from app.core.database import Base
 
 
-class AlarmType(str, enum.Enum):
-    """Alarm Type Enum"""
-    OVER_TEMPERATURE = "over_temperature"       # Over Temperature
-    OVER_RPM = "over_rpm"                       # Over RPM
-    OVER_VOLTAGE = "over_voltage"               # Over Voltage
-    OVER_CURRENT = "over_current"               # Over Current
-    COMMUNICATION_ERROR = "communication_error" # Communication Error
-    HEARTBEAT_TIMEOUT = "heartbeat_timeout"     # Heartbeat Timeout
-    CUSTOM = "custom"                           # Custom
-
-
-class AlarmSeverity(str, enum.Enum):
-    """Alarm Severity Enum"""
-    LOW = "low"           # Low
-    MEDIUM = "medium"     # Medium
-    HIGH = "high"         # High
-    CRITICAL = "critical" # Critical
-
-
-# Alarm Type Configuration
-ALARM_TYPE_CONFIG = {
-    AlarmType.OVER_TEMPERATURE: {"label": "Over Temperature", "icon": "🌡️"},
-    AlarmType.OVER_RPM: {"label": "Over RPM", "icon": "🔄"},
-    AlarmType.OVER_VOLTAGE: {"label": "Over Voltage", "icon": "⚡"},
-    AlarmType.OVER_CURRENT: {"label": "Over Current", "icon": "🔌"},
-    AlarmType.COMMUNICATION_ERROR: {"label": "Communication Error", "icon": "📡"},
-    AlarmType.HEARTBEAT_TIMEOUT: {"label": "Heartbeat Timeout", "icon": "💔"},
-    AlarmType.CUSTOM: {"label": "Custom Alarm", "icon": "⚠️"},
-}
-
-# Severity Colors
-SEVERITY_COLORS = {
-    AlarmSeverity.LOW: "#fbbf24",
-    AlarmSeverity.MEDIUM: "#f97316",
-    AlarmSeverity.HIGH: "#ef4444",
-    AlarmSeverity.CRITICAL: "#dc2626",
-}
-
-
-class Alarm(BaseModel):
-    """Alarm Record Table"""
+class Alarm(Base):
+    """告警表"""
     __tablename__ = "alarms"
     
-    # Basic Info
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    bench_id = Column(String(36), ForeignKey("test_benches.id"), nullable=False)
-    
-    # Alarm Info
-    type = Column(SQLEnum(AlarmType), nullable=False)
-    severity = Column(SQLEnum(AlarmSeverity), nullable=False, default=AlarmSeverity.MEDIUM)
-    message = Column(Text, nullable=False)
-    
-    # Trigger Value
-    value = Column(Float, nullable=True)
-    threshold = Column(Float, nullable=True)
-    
-    # Acknowledge Info
-    acknowledged = Column(Boolean, default=False)
-    acknowledged_by = Column(String(100), nullable=True)
-    acknowledged_at = Column(DateTime, nullable=True)
-    
-    # Timestamp
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # Relationship
-    bench = relationship("TestBench", back_populates="alarms")
-    
-    def __repr__(self):
-        return f"<Alarm {self.type} - {self.bench_id}>"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=True)
+    level = Column(String(2), nullable=False)  # P0/P1/P2/P3
+    type = Column(String(50), nullable=False)  # 告警类型
+    message = Column(Text, nullable=False)  # 告警消息
+    status = Column(String(20), default="active")  # active/resolved/acknowledged
+    acknowledged_by = Column(String(100), nullable=True)  # 确认人
+    resolved_at = Column(DateTime(timezone=True), nullable=True)  # 解决时间
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     def to_dict(self):
-        """Convert to dict"""
+        """转换为字典"""
         return {
             "id": self.id,
-            "benchId": self.bench_id,
-            "type": self.type.value if self.type else None,
-            "typeInfo": ALARM_TYPE_CONFIG.get(self.type, {}) if self.type else {},
-            "severity": self.severity.value if self.severity else None,
-            "severityColor": SEVERITY_COLORS.get(self.severity, "#f97316"),
+            "device_id": self.device_id,
+            "level": self.level,
+            "type": self.type,
             "message": self.message,
-            "value": self.value,
-            "threshold": self.threshold,
-            "acknowledged": self.acknowledged,
-            "acknowledgedBy": self.acknowledged_by,
-            "acknowledgedAt": self.acknowledged_at.isoformat() if self.acknowledged_at else None,
-            "createdAt": self.created_at.isoformat() if self.created_at else None
+            "status": self.status,
+            "acknowledged_by": self.acknowledged_by,
+            "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
+
+
+# 告警级别定义
+ALARM_LEVELS = {
+    "P0": {
+        "name": "紧急",
+        "color": "#F5222D",
+        "description": "设备故障/测试中断",
+        "notification": ["email", "dingtalk", "feishu", "sms"]
+    },
+    "P1": {
+        "name": "严重",
+        "color": "#FA8C16",
+        "description": "性能下降/异常",
+        "notification": ["email", "dingtalk", "feishu"]
+    },
+    "P2": {
+        "name": "警告",
+        "color": "#FAAD14",
+        "description": "资源不足/即将过期",
+        "notification": ["email", "dingtalk"]
+    },
+    "P3": {
+        "name": "提示",
+        "color": "#52C41A",
+        "description": "维护提醒/信息更新",
+        "notification": ["dingtalk"]
+    }
+}
+
+# 告警类型定义
+ALARM_TYPES = {
+    "hardware_failure": "硬件故障",
+    "communication_error": "通信错误",
+    "performance_degradation": "性能下降",
+    "environmental_anomaly": "环境异常",
+    "test_failure": "测试失败",
+    "resource_shortage": "资源不足",
+    "maintenance_reminder": "维护提醒",
+    "calibration_expired": "校准过期"
+}
