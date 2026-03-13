@@ -1,47 +1,63 @@
 @echo off
 echo ========================================
-echo   DVP看板测试和修复
+echo   DVP Dashboard Test Script
 echo ========================================
 echo.
 
-REM 启动后端
-echo [1/3] 启动后端服务...
-start "Backend Server" cmd /k "cd /d %~dp0backend && start.bat"
+cd /d %~dp0
 
-REM 等待后端启动
+REM Start Backend
+echo [1/3] Starting backend server...
+if exist "backend\start.bat" (
+    start "Backend Server" cmd /k "cd /d %~dp0backend && start.bat"
+    echo [OK] Backend starting...
+) else (
+    echo [ERROR] backend\start.bat not found
+    pause
+    exit /b 1
+)
+
+REM Wait for backend
+echo Waiting for backend to initialize...
 timeout /t 10 /nobreak >nul
 
-REM 测试后端API
-echo [2/3] 测试后端API...
-curl -s http://localhost:8000/health >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] 后端API无法访问
-    echo 请检查后端是否正常启动
+REM Test backend health
+echo [2/3] Testing backend API...
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:8000/health' -UseBasicParsing -TimeoutSec 5; if ($response.StatusCode -eq 200) { exit 0 } else { exit 1 } } catch { exit 1 }"
+
+if %errorlevel% equ 0 (
+    echo [OK] Backend API is responding
+) else (
+    echo [ERROR] Backend API not responding
+    echo Please check if backend started correctly
     pause
     exit /b 1
-) else (
-    echo [OK] 后端API正常
 )
 
-REM 测试DVP API
-echo [3/3] 测试DVP API...
-curl -s http://localhost:8000/api/v1/dvp/projects >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] DVP API无法访问
-    echo 请检查DVP路由是否正确配置
+REM Test DVP API
+echo [3/3] Testing DVP API...
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:8000/api/v1/dvp/projects' -UseBasicParsing -TimeoutSec 5; if ($response.StatusCode -eq 200) { exit 0 } else { exit 1 } } catch { exit 1 }"
+
+if %errorlevel% equ 0 (
+    echo [OK] DVP API is responding
+) else (
+    echo [ERROR] DVP API not responding
+    echo Please check DVP router configuration
     pause
     exit /b 1
-) else (
-    echo [OK] DVP API正常
 )
 
 echo.
 echo ========================================
-echo   测试完成！
+echo   All Tests Passed!
 echo ========================================
 echo.
-echo [INFO] 后端服务运行在: http://localhost:8000
-echo [INFO] API文档地址: http://localhost:8000/docs
-echo [INFO] DVP API地址: http://localhost:8000/api/v1/dvp/projects
+echo Backend Server: http://localhost:8000
+echo API Docs:       http://localhost:8000/docs
+echo DVP API:        http://localhost:8000/api/v1/dvp/projects
+echo.
+echo You can now:
+echo   1. Open http://localhost:3000 in browser
+echo   2. Switch to DVP Dashboard
 echo.
 pause
