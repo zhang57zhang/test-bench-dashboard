@@ -1,7 +1,7 @@
 # 智能测试台架工厂数字孪生看板
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.2.1-green.svg)](https://github.com/zhang57zhang/test-bench-dashboard)
+[![Version](https://img.shields.io/badge/version-2.3.0--alpha-blue.svg)](https://github.com/zhang57zhang/test-bench-dashboard)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.20-black.svg)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-green.svg)](https://fastapi.tiangolo.com/)
 
@@ -20,7 +20,10 @@
 ### ✨ 核心特性
 
 - ✅ **四合一统一平台** - 一个平台管理所有测试相关看板
-- ✅ **实时监控** - 设备状态、项目进度、测试执行实时更新
+- ✅ **WebSocket实时推送** ⭐ NEW - 设备状态、告警、指标实时更新
+- ✅ **智能告警系统** ⭐ NEW - 分级告警（P0-P3）+ 完整生命周期管理
+- ✅ **性能指标体系** ⭐ NEW - 设备利用率、MTBF、MTTR、测试通过率等
+- ✅ **趋势分析** ⭐ NEW - 多维度趋势图表，辅助决策
 - ✅ **数据可视化** - 直观的图表和统计数据展示
 - ✅ **多维度统计** - 按天/周/月/年/项目多维度分析
 - ✅ **科技感UI** - 现代化的用户界面设计
