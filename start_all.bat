@@ -1,73 +1,35 @@
 @echo off
-chcp 65001 >nul
 echo ========================================
-echo   统一看板平台 - 全部服务启动
+echo   Start All Services
 echo ========================================
 echo.
 
-REM 检查 Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] 未找到 Python，请安装 Python 3.10+
-    pause
-    exit /b 1
+cd /d %~dp0
+
+REM Start Backend
+echo [1/2] Starting backend server...
+start "Backend" cmd /k "cd backend && python -m venv venv && venv\Scripts\activate && pip install -r requirements.txt && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+timeout /t 8 /nobreak >nul
+
+REM Start Frontend
+echo [2/2] Starting frontend server...
+cd frontend
+
+if not exist "out\index.html" (
+    echo Building frontend...
+    call npm run build
 )
 
-REM 检查 Node.js
-node --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] 未找到 Node.js。请安装 Node.js 18+
-    pause
-    exit /b 1
-)
-
-echo [INFO] 正在启动所有服务...
-echo.
-
-REM ========================================
-REM 1. 启动测试台架后端
-REM ========================================
-echo [1/3] 启动测试台架后端服务...
-start "Test Bench Backend" cmd /k "cd /d %~dp0backend && start.bat"
-timeout /t 3 /nobreak >nul
-
-REM ========================================
-REM 2. 启动DVP后端（已本地化，无需单独启动）
-REM ========================================
-echo [2/3] DVP后端已本地化，无需单独启动
-timeout /t 1 /nobreak >nul
-
-REM ========================================
-REM 3. 启动前端服务
-REM ========================================
-echo [3/3] 启动前端服务...
-cd /d %~dp0frontend
-
-REM 检查是否需要安装 serve
-npm list -g serve >nul 2>&1
-if errorlevel 1 (
-    echo [INFO] 正在安装 serve...
-    npm install -g serve
-)
+start "Frontend" cmd /k "serve -s out -l 3000"
 
 echo.
 echo ========================================
-echo   所有服务启动完成！
+echo   All services started successfully!
 echo ========================================
 echo.
-echo [INFO] 访问地址：
-echo   - 前端看板:     http://192.168.1.100:3000
-echo   - 测试台架API:  http://192.168.1.100:8000
-echo   - DVP API:      http://192.168.1.100:8000/api/v1/dvp
+echo Frontend: http://localhost:3000
+echo Backend:  http://localhost:8000
+echo API Docs: http://localhost:8000/docs
 echo.
-echo [INFO] API 文档：
-echo   - Swagger UI:   http://192.168.1.100:8000/docs
-echo   - ReDoc:        http://192.168.1.100:8000/redoc
-echo.
-echo [INFO] 按 Ctrl+C 停止前端服务
-echo ========================================
-echo.
-
-serve -s out -l 3000
-
 pause
