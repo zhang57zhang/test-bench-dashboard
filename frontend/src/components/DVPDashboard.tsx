@@ -20,20 +20,12 @@ export default function DVPDashboard() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const response = await projectAPI.getAll(0, 500);
-      setProjects(response.data);
+      const data = await projectAPI.getAll(0, 500);
+      setProjects(data);  // 直接返回数组
       setError(null);
     } catch (err: any) {
       console.error('Error fetching projects:', err);
-      
-      // 更友好的错误提示
-      if (err.message?.includes('DVP后端服务未启动')) {
-        setError('DVP后端服务未启动');
-      } else if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
-        setError('无法连接到DVP后端服务');
-      } else {
-        setError(err.message || '加载项目失败');
-      }
+      setError(err.message || '加载项目失败');
     } finally {
       setLoading(false);
     }

@@ -55,19 +55,32 @@ export interface Project {
   updated_at: string;
 }
 
+export interface ProjectStatistics {
+  total_projects: number;
+  running_projects: number;
+  completed_projects: number;
+  interrupted_projects: number;
+  average_progress: number;
+}
+
 export const projectAPI = {
-  getAll: async (skip = 0, limit = 100): Promise<{ data: Project[]; total: number }> => {
-    const response = await dvpApi.get(`/api/projects?skip=${skip}&limit=${limit}`);
+  getAll: async (skip = 0, limit = 100): Promise<Project[]> => {
+    const response = await dvpApi.get(`/projects?skip=${skip}&limit=${limit}`);
     return response.data;
   },
 
   getById: async (projectId: string): Promise<Project> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}`);
+    const response = await dvpApi.get(`/projects/${projectId}`);
     return response.data;
   },
 
-  getStatistics: async (projectId: string): Promise<any> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}/statistics`);
+  getStatistics: async (): Promise<ProjectStatistics> => {
+    const response = await dvpApi.get('/statistics');
+    return response.data;
+  },
+
+  regenerate: async (): Promise<{ message: string; count: number }> => {
+    const response = await dvpApi.post('/projects/generate');
     return response.data;
   },
 };
@@ -87,12 +100,12 @@ export interface Experiment {
 
 export const experimentAPI = {
   getByProject: async (projectId: string): Promise<Experiment[]> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}/experiments`);
+    const response = await dvpApi.get(`/projects/${projectId}/experiments`);
     return response.data;
   },
 
   getById: async (projectId: string, experimentId: string): Promise<Experiment> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}/experiments/${experimentId}`);
+    const response = await dvpApi.get(`/projects/${projectId}/experiments/${experimentId}`);
     return response.data;
   },
 };
@@ -106,32 +119,16 @@ export interface Device {
   name: string;
   status: 'running' | 'idle' | 'error' | 'completed';
   progress: number;
-  oscilloscope?: {
-    waveform: number[];
-    sample_rate: number;
-    timestamp: string;
-  };
-  metrics?: {
-    power?: number;
-    current?: number;
-    temperature?: number;
-    pressure?: number;
-  };
-  alerts?: Array<{
-    level: string;
-    message: string;
-    timestamp: string;
-  }>;
 }
 
 export const deviceAPI = {
   getByExperiment: async (projectId: string, experimentId: string): Promise<Device[]> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}/experiments/${experimentId}/devices`);
+    const response = await dvpApi.get(`/projects/${projectId}/experiments/${experimentId}/devices`);
     return response.data;
   },
 
   getById: async (projectId: string, experimentId: string, deviceId: string): Promise<Device> => {
-    const response = await dvpApi.get(`/api/projects/${projectId}/experiments/${experimentId}/devices/${deviceId}`);
+    const response = await dvpApi.get(`/projects/${projectId}/experiments/${experimentId}/devices/${deviceId}`);
     return response.data;
   },
 };

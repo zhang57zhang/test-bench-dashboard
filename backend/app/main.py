@@ -18,7 +18,8 @@ from app.api import (
     statistics_router, 
     config_router,
     automation_router,
-    ai_assistant_router
+    ai_assistant_router,
+    dvp_router
 )
 
 
@@ -67,6 +68,7 @@ app.include_router(statistics_router, prefix="/api/v1")
 app.include_router(config_router, prefix="/api/v1")
 app.include_router(automation_router, prefix="/api/v1")
 app.include_router(ai_assistant_router, prefix="/api/v1")
+app.include_router(dvp_router, prefix="/api/v1")
 app.include_router(automation_router, prefix="/api/v1")
 app.include_router(ai_assistant_router, prefix="/api/v1")
 
