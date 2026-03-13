@@ -36,17 +36,15 @@ export const DASHBOARD_CONFIGS: DashboardConfig[] = [
     id: 'automation',
     name: '自动化测试看板',
     icon: '🤖',
-    description: '自动化测试执行监控（开发中）',
-    available: false,
-    badge: '即将推出',
+    description: '自动化测试执行监控与统计',
+    available: true,  // 启用
   },
   {
     id: 'ai-assistant',
     name: 'AI辅助看板',
     icon: '🧠',
-    description: 'AI智能分析与辅助决策（开发中）',
-    available: false,
-    badge: '即将推出',
+    description: 'AI智能辅助统计分析',
+    available: true,  // 启用
   },
 ];
 

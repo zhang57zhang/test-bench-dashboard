@@ -28,10 +28,13 @@ export default function Header({
     statistics,
   } = useStore();
   
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   
   useEffect(() => {
+    // 只在客户端初始化时间
+    setCurrentTime(new Date());
+    
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -137,8 +140,8 @@ export default function Header({
         </button>
         
         {/* 当前时间 */}
-        <div className="text-sm text-gray-300 ml-2">
-          {formatDateTime(currentTime.toISOString())}
+        <div className="text-sm text-gray-300 ml-2" suppressHydrationWarning>
+          {currentTime ? formatDateTime(currentTime.toISOString()) : '--'}
         </div>
       </div>
       

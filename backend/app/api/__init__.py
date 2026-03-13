@@ -8,11 +8,15 @@ from app.api.laboratories import router as laboratories_router
 from app.api.alarms import router as alarms_router
 from app.api.statistics import router as statistics_router
 from app.api.config import router as config_router
+from app.api.automation import router as automation_router
+from app.api.ai_assistant import router as ai_assistant_router
 
 __all__ = [
     "benches_router",
     "laboratories_router",
     "alarms_router",
     "statistics_router",
-    "config_router"
+    "config_router",
+    "automation_router",
+    "ai_assistant_router"
 ]
