@@ -1,83 +1,107 @@
 @echo off
-chcp 65001 >nul
+setlocal enabledelayedexpansion
+
 echo ========================================
-echo   Test Bench Dashboard - 一键启动
+echo   Test Bench Dashboard - Quick Start
 echo ========================================
 echo.
 
 cd /d "%~dp0"
 
-REM 检查 Python
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [错误] 未找到 Python，请安装 Python 3.10+
+REM Check Python
+where python >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Python not found. Please install Python 3.10+
+    echo         Download: https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
-REM 检查 Node.js
-node --version >nul 2>&1
-if errorlevel 1 (
-    echo [错误] 未找到 Node.js，请安装 Node.js 18+
+REM Check Node.js
+where node >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [ERROR] Node.js not found. Please install Node.js 18+
+    echo         Download: https://nodejs.org/
     pause
     exit /b 1
 )
 
-echo [1/2] 启动后端服务...
+echo [1/2] Starting Backend Server...
 cd backend
 
-REM 创建虚拟环境
+REM Create virtual environment
 if not exist "venv" (
-    echo [信息] 创建 Python 虚拟环境...
+    echo [INFO] Creating Python virtual environment...
     python -m venv venv
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to create virtual environment
+        pause
+        exit /b 1
+    )
 )
 
-REM 激活虚拟环境
-call venv\Scripts\activate.bat
-
-REM 安装依赖
-pip show fastapi >nul 2>&1
-if errorlevel 1 (
-    echo [信息] 安装后端依赖...
-    pip install -r requirements.txt
-)
-
-REM 创建数据目录
+REM Create data directory
 if not exist "data" mkdir data
 
-REM 启动后端
-start "Backend Server" cmd /k "venv\Scripts\activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
-
-echo [后端] http://localhost:8000
-echo [API文档] http://localhost:8000/docs
-echo.
-
-timeout /t 5 /nobreak >nul
-
-echo [2/2] 启动前端服务...
-cd ..\frontend
-
-REM 安装依赖
-if not exist "node_modules" (
-    echo [信息] 安装前端依赖...
-    call npm install
+REM Check and install dependencies
+if not exist "venv\Lib\site-packages\fastapi" (
+    echo [INFO] Installing backend dependencies...
+    call venv\Scripts\pip.exe install -r requirements.txt
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to install dependencies
+        pause
+        exit /b 1
+    )
 )
 
-REM 启动前端
-start "Frontend Server" cmd /k "npm run dev"
+REM Start backend server
+echo [INFO] Starting backend on port 8000...
+start "Backend - Port 8000" cmd /c "cd /d %~dp0backend && venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
-echo [前端] http://localhost:3000
+echo.
+echo   Backend:  http://localhost:8000
+echo   API Docs: http://localhost:8000/docs
+echo.
+
+REM Wait for backend to start
+echo [INFO] Waiting for backend to start...
+ping -n 6 127.0.0.1 >nul 2>&1
+
+echo [2/2] Starting Frontend Server...
+cd ..\frontend
+
+REM Install frontend dependencies
+if not exist "node_modules" (
+    echo [INFO] Installing frontend dependencies...
+    call npm install
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to install npm dependencies
+        pause
+        exit /b 1
+    )
+)
+
+REM Start frontend server
+echo [INFO] Starting frontend on port 3000...
+start "Frontend - Port 3000" cmd /c "cd /d %~dp0frontend && npm run dev"
+
+echo.
+echo   Frontend: http://localhost:3000
 echo.
 
 echo ========================================
-echo   服务启动完成！
+echo   Services Started Successfully!
 echo ========================================
 echo.
-echo 前端地址: http://localhost:3000
-echo 后端地址: http://localhost:8000
-echo API文档:  http://localhost:8000/docs
+echo   Frontend: http://localhost:3000
+echo   Backend:  http://localhost:8000
+echo   API Docs: http://localhost:8000/docs
 echo.
-echo 按任意键打开浏览器...
+echo   Press any key to open browser...
 pause >nul
 
-start http://localhost:3000
+start "" http://localhost:3000
+
+echo.
+echo [INFO] Browser opened. You can close this window.
+echo        Close the Backend/Frontend windows to stop servers.
