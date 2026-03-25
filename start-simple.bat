@@ -44,7 +44,7 @@ if not exist "venv\Lib\site-packages\fastapi" (
 )
 
 echo Starting backend server...
-start "Backend-8000" cmd /c "cd /d %~dp0backend && venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend-8000" cmd /c "cd /d %~dp0backend && venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 echo   Backend:  http://localhost:8000
 echo   API Docs: http://localhost:8000/docs

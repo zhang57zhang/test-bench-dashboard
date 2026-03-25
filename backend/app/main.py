@@ -1,7 +1,10 @@
 """
 Main Application
-主应用入口
 """
+
+import multiprocessing
+
+multiprocessing.freeze_support()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +29,7 @@ from app.api import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期"""
+    """Application lifecycle"""
     init_db()
     print("[OK] Database initialized")
 
@@ -43,8 +46,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="智能测试台架工厂数字孪生看板",
-    description="Test Bench Factory Digital Twin Dashboard API",
+    title="Test Bench Dashboard API",
+    description="Test Bench Factory Digital Twin Dashboard",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -70,9 +73,9 @@ app.include_router(dvp_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    """根路径"""
+    """Root endpoint"""
     return {
-        "name": "智能测试台架工厂数字孪生看板 API",
+        "name": "Test Bench Dashboard API",
         "version": "1.0.0",
         "docs": "/docs",
         "websocket": "/ws",
@@ -81,11 +84,11 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """健康检查"""
+    """Health check"""
     return {"status": "healthy"}
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, workers=1)

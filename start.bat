@@ -46,7 +46,7 @@ if not exist "data" mkdir data
 REM Check and install dependencies
 if not exist "venv\Lib\site-packages\fastapi" (
     echo [INFO] Installing backend dependencies...
-    call venv\Scripts\pip.exe install -r requirements.txt
+    venv\Scripts\pip.exe install -r requirements.txt
     if %errorlevel% neq 0 (
         echo [ERROR] Failed to install dependencies
         pause
@@ -56,7 +56,7 @@ if not exist "venv\Lib\site-packages\fastapi" (
 
 REM Start backend server
 echo [INFO] Starting backend on port 8000...
-start "Backend - Port 8000" cmd /c "cd /d %~dp0backend && venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend - Port 8000" cmd /c "cd /d %~dp0backend && venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 echo.
 echo   Backend:  http://localhost:8000
